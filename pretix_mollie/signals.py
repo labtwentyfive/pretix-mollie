@@ -80,6 +80,81 @@ def register_global_settings(sender, **kwargs):
             label=_('Mollie Connect: Client secret'),
             required=False,
         )),
+        ('payment_mollie_live_api_key', forms.CharField(
+            label=_('Mollie Secret key (Live)'),
+            required=False,
+            validators=(
+                MollieKeyValidator(['live_']),
+            ),
+        )),
+        ('payment_mollie_test_api_key', forms.CharField(
+            label=_('Mollie Secret key (Testing)'),
+            required=False,
+            validators=(
+                MollieKeyValidator(['test_']),
+            ),
+        )),
+        ('payment_mollie_method_creditcard',
+         forms.BooleanField(
+             label=_('Credit card'),
+             required=False,
+         )),
+        ('payment_mollie_method_bancontact',
+         forms.BooleanField(
+             label=_('Bancontact'),
+             required=False,
+         )),
+        ('payment_mollie_method_banktransfer',
+         forms.BooleanField(
+             label=_('Bank transfer'),
+             required=False,
+         )),
+        ('payment_mollie_method_belfius',
+         forms.BooleanField(
+             label=_('Belfius Pay Button'),
+             required=False,
+         )),
+        ('payment_mollie_method_bitcoin',
+         forms.BooleanField(
+             label=_('Bitcoin'),
+             required=False,
+         )),
+        ('payment_mollie_method_eps',
+         forms.BooleanField(
+             label=_('EPS'),
+             required=False,
+         )),
+        ('payment_mollie_method_giropay',
+         forms.BooleanField(
+             label=_('giropay'),
+             required=False,
+         )),
+        ('payment_mollie_method_ideal',
+         forms.BooleanField(
+             label=_('iDEAL'),
+             required=False,
+         )),
+        ('payment_mollie_method_inghomepay',
+         forms.BooleanField(
+             label=_('ING Home’Pay'),
+             required=False,
+         )),
+        ('payment_mollie_method_kbc',
+         forms.BooleanField(
+             label=_('KBC/CBC Payment Button'),
+             required=False,
+         )),
+        ('payment_mollie_method_paysafecard',
+         forms.BooleanField(
+             label=_('paysafecard'),
+             required=False,
+         )),
+        ('payment_mollie_method_sofort',
+         forms.BooleanField(
+             label=_('Sofort'),
+             required=False,
+         )),
+
     ])
 
 
@@ -103,7 +178,7 @@ def refresh_mollie_tokens(sender, **kwargs):
                 except Exception as e:
                     logger.exception('Unable to refresh mollie token')
                     if float(es.object.settings.payment_mollie_expires) > time.time() and not \
-                            es.object.settings.payment_mollie_api_key:
+                            es.object.settings.payment_mollie_live_api_key:
                         es.object.settings.payment_mollie__enabled = False
                         es.object.log_action('pretix_mollie.event.disabled', {
                             'reason': str(e)

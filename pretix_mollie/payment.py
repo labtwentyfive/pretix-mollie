@@ -51,7 +51,7 @@ class MollieSettingsHolder(BasePaymentProvider):
         )
 
     def settings_content_render(self, request):
-        if self.settings.connect_client_id and not self.settings.api_key:
+        if self.settings.connect_client_id and not self.settings.live_api_key:
             # Use Mollie Connect
             if not self.settings.access_token:
                 return (
@@ -77,7 +77,7 @@ class MollieSettingsHolder(BasePaymentProvider):
 
     @property
     def test_mode_message(self):
-        if self.settings.connect_client_id and not self.settings.api_key:
+        if self.settings.connect_client_id and not self.settings.live_api_key:
             is_testmode = True
         else:
             is_testmode = 'test_' in self.settings.secret_key
@@ -87,7 +87,7 @@ class MollieSettingsHolder(BasePaymentProvider):
 
     @property
     def settings_form_fields(self):
-        if self.settings.connect_client_id and not self.settings.api_key:
+        if self.settings.connect_client_id and not self.settings.live_api_key:
             # Mollie Connect
             if self.settings.access_token:
                 fields = [
@@ -101,89 +101,21 @@ class MollieSettingsHolder(BasePaymentProvider):
                          label=_('Website profile'),
                          choices=self.settings.get('connect_profiles', as_type=list) or []
                      )),
-                    ('endpoint',
-                     forms.ChoiceField(
-                         label=_('Endpoint'),
-                         initial='live',
-                         choices=(
-                             ('live', pgettext('mollie', 'Live')),
-                             ('test', pgettext('mollie', 'Testing')),
-                         ),
-                     )),
                 ]
             else:
                 return {}
         else:
-            fields = [
-                ('api_key',
-                 forms.CharField(
-                     label=_('Secret key'),
-                     validators=(
-                         MollieKeyValidator(['live_', 'test_']),
-                     ),
-                 )),
-            ]
+            fields = []
         d = OrderedDict(
             fields + [
-                ('method_creditcard',
-                 forms.BooleanField(
-                     label=_('Credit card'),
-                     required=False,
-                 )),
-                ('method_bancontact',
-                 forms.BooleanField(
-                     label=_('Bancontact'),
-                     required=False,
-                 )),
-                ('method_banktransfer',
-                 forms.BooleanField(
-                     label=_('Bank transfer'),
-                     required=False,
-                 )),
-                ('method_belfius',
-                 forms.BooleanField(
-                     label=_('Belfius Pay Button'),
-                     required=False,
-                 )),
-                ('method_bitcoin',
-                 forms.BooleanField(
-                     label=_('Bitcoin'),
-                     required=False,
-                 )),
-                ('method_eps',
-                 forms.BooleanField(
-                     label=_('EPS'),
-                     required=False,
-                 )),
-                ('method_giropay',
-                 forms.BooleanField(
-                     label=_('giropay'),
-                     required=False,
-                 )),
-                ('method_ideal',
-                 forms.BooleanField(
-                     label=_('iDEAL'),
-                     required=False,
-                 )),
-                ('method_inghomepay',
-                 forms.BooleanField(
-                     label=_('ING Home’Pay'),
-                     required=False,
-                 )),
-                ('method_kbc',
-                 forms.BooleanField(
-                     label=_('KBC/CBC Payment Button'),
-                     required=False,
-                 )),
-                ('method_paysafecard',
-                 forms.BooleanField(
-                     label=_('paysafecard'),
-                     required=False,
-                 )),
-                ('method_sofort',
-                 forms.BooleanField(
-                     label=_('Sofort'),
-                     required=False,
+                ('endpoint',
+                 forms.ChoiceField(
+                     label=_('Endpoint'),
+                     initial='live',
+                     choices=(
+                         ('live', pgettext('mollie', 'Live')),
+                         ('test', pgettext('mollie', 'Testing')),
+                     ),
                  )),
             ] + list(super().settings_form_fields.items())
         )
@@ -231,7 +163,7 @@ class MollieMethod(BasePaymentProvider):
         if self.settings.connect_client_id and self.settings.access_token:
             headers['Authorization'] = 'Bearer %s' % self.settings.access_token
         else:
-            headers['Authorization'] = 'Bearer %s' % self.settings.api_key
+            headers['Authorization'] = 'Bearer %s' % self.settings.get('{}_api_key'.format(self.settings.endpoint))
         return headers
 
     def payment_form_render(self, request) -> str:
